@@ -1,0 +1,17 @@
+<package format="2">
+  <name>tiago_task_manager</name>
+  <version>0.1.0</version>
+  <description>
+    This package provides foo capability.
+  </description>
+  <maintainer email="5305@pw.edu.pl">dseredyn</maintainer>
+  <license>BSD</license>
+
+  <url>http://ros.org/wiki/incare</url>
+  <author>Dawid Seredyński</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>tiago_msgs</build_depend>
+  <exec_depend>tiago_msgs</exec_depend>
+</package>
