@@ -2,9 +2,13 @@
 <launch>
 
     <!-- actionlib servers -->
-    <node name="rosplan_interface_go_server" pkg="rosplan_tiago_hazard_detection" type="go_server" respawn="false" output="screen">
-    </node>
+    <node name="wander_server" pkg="tiago_smach" type="wander_server" respawn="false" output="screen" />
 
+    <node name="move_to_server" pkg="tiago_smach" type="move_to_server" respawn="false" output="screen" />
+
+    <node name="bring_goods_server" pkg="tiago_smach" type="bring_goods_server" respawn="false" output="screen" />
+
+    <!--
     <node name="rosplan_interface_check_door_server" pkg="rosplan_tiago_hazard_detection" type="check_door_server" respawn="false" output="screen">
     </node>
 
@@ -13,15 +17,17 @@
 
     <node name="rosplan_interface_check_dishwasher_server" pkg="rosplan_tiago_hazard_detection" type="check_dishwasher_server" respawn="false" output="screen">
     </node>
+    -->
 
     <!-- params servers -->
+    <!--
     <node name="rosplan_interface_location_name_server" pkg="rosplan_tiago_params" type="location_name_server" respawn="false" output="screen">
     </node>
 
     <node name="rosplan_interface_people_server" pkg="rosplan_tiago_params" type="people_server" respawn="false" output="screen">
     </node>
-
+    -->
     <!-- common -->
-    <node name="rosplan_service_controller_server" pkg="rosplan_tiago_common" type="rosplan_sys_control" respawn="false" output="screen">
-    </node>
+    <!--<node name="rosplan_service_controller_server" pkg="rosplan_tiago_common" type="rosplan_sys_control" respawn="false" output="screen">
+    </node>-->
 </launch>

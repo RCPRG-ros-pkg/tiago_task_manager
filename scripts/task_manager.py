@@ -47,9 +47,12 @@ from geometry_msgs.msg import Pose
 
 from tiago_msgs.msg import Command
 
-from rosplan_tiago_scenarios_msgs.msg import GoAction, GoActionGoal, GoActionFeedback, GoActionResult, GoGoal
+#from rosplan_tiago_scenarios_msgs.msg import GoAction, GoActionGoal, GoActionFeedback, GoActionResult, GoGoal
 
 from tiago_behaviours_msgs.msg import WanderAction, WanderGoal
+from tiago_behaviours_msgs.msg import MoveToAction, MoveToGoal
+from tiago_behaviours_msgs.msg import BringGoodsAction, BringGoodsGoal
+
 
 def deg2rad(angle_deg):
     return float(angle_deg)/180.0*math.pi
@@ -65,7 +68,7 @@ def makePose(x, y, theta):
     result.orientation.w = q[3]
     return result
 
-def taskGoTo(place_name):
+def taskMoveTo(place_name):
     print 'Poproszono mnie o przejscie do: ' + place_name
     # TODO: transform place_name to pose
     if place_name == 'kuchnia':
@@ -81,14 +84,14 @@ def taskGoTo(place_name):
         return False
 
     # Creates the SimpleActionClient, passing the type of the action to the constructor.
-    client = actionlib.SimpleActionClient('go', GoAction)
+    client = actionlib.SimpleActionClient('move_to', MoveToAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
-    goal = GoGoal()
+    goal = MoveToGoal()
 
     goal.pose = pose
 
@@ -126,7 +129,16 @@ def taskWander():
     return client.get_result()
 
 def taskBring(object_name):
-    pass
+    print 'poproszono mnie o przyniesienie: ' + object_name
+
+    client = actionlib.SimpleActionClient('bring_goods', BringGoodsAction)
+    client.wait_for_server()
+    goal = BringGoodsGoal()
+    goal.goods_name = object_name
+    client.send_goal(goal)
+    client.wait_for_result()
+    return client.get_result()
+
 
 def callback(data):
     #print 'query_text', data.query_text
@@ -137,11 +149,10 @@ def callback(data):
         param_dict[param_name] = param_value
 
     if data.intent_name == 'projects/incare-dialog-agent/agent/intents/176ab2ca-6250-4227-985b-cc82d5497d9f':
-        object_name = param_dict['przedmiot']
-        print 'poproszono mnie o przyniesienie: ' + object_name
+        taskBring(param_dict['przedmiot'])
 
     elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/0165eceb-9621-4a7d-aecc-7a879951da18':
-        taskGoTo( param_dict['miejsce'] )
+        taskMoveTo( param_dict['miejsce'] )
 
     elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/2f028022-05b6-467d-bcbe-e861ab449c17':
         print 'Niezrozumiale polecenie: "' + data.query_text + '"'
