@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- actionlib servers -->
+    <node name="rosplan_interface_go_server" pkg="rosplan_tiago_hazard_detection" type="go_server" respawn="false" output="screen">
+    </node>
+
+    <node name="rosplan_interface_check_door_server" pkg="rosplan_tiago_hazard_detection" type="check_door_server" respawn="false" output="screen">
+    </node>
+
+    <node name="rosplan_interface_check_light_server" pkg="rosplan_tiago_hazard_detection" type="check_light_server" respawn="false" output="screen">
+    </node>
+
+    <node name="rosplan_interface_check_dishwasher_server" pkg="rosplan_tiago_hazard_detection" type="check_dishwasher_server" respawn="false" output="screen">
+    </node>
+
+    <!-- params servers -->
+    <node name="rosplan_interface_location_name_server" pkg="rosplan_tiago_params" type="location_name_server" respawn="false" output="screen">
+    </node>
+
+    <node name="rosplan_interface_people_server" pkg="rosplan_tiago_params" type="people_server" respawn="false" output="screen">
+    </node>
+
+    <!-- common -->
+    <node name="rosplan_service_controller_server" pkg="rosplan_tiago_common" type="rosplan_sys_control" respawn="false" output="screen">
+    </node>
+</launch>

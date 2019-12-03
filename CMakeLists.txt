@@ -33,6 +33,6 @@ project(tiago_task_manager)
   #add_executable(does_not_use_local_messages_program src/main.cpp)
   #add_dependencies(does_not_use_local_messages_program ${catkin_EXPORTED_TARGETS})
 
-#install(DIRECTORY launch/
-#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-#  PATTERN ".svn" EXCLUDE)
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  PATTERN ".svn" EXCLUDE)
