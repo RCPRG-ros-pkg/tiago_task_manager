@@ -129,7 +129,7 @@ def taskWander():
     return client.get_result()
 
 def taskBring(object_name):
-    print 'poproszono mnie o przyniesienie: ' + object_name
+    print 'Poproszono mnie o przyniesienie: ' + object_name
 
     client = actionlib.SimpleActionClient('bring_goods', BringGoodsAction)
     client.wait_for_server()
@@ -139,6 +139,8 @@ def taskBring(object_name):
     client.wait_for_result()
     return client.get_result()
 
+def taskStop():
+    print 'Poproszono mnie o zatrzymanie sie.'
 
 def callback(data):
     #print 'query_text', data.query_text
@@ -153,6 +155,9 @@ def callback(data):
 
     elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/0165eceb-9621-4a7d-aecc-7a879951da18':
         taskMoveTo( param_dict['miejsce'] )
+
+    elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/7acd4325-4cdd-4e15-99be-ad545f4dddd5':
+        taskStop()
 
     elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/2f028022-05b6-467d-bcbe-e861ab449c17':
         print 'Niezrozumiale polecenie: "' + data.query_text + '"'
