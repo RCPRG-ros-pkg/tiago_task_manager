@@ -52,7 +52,7 @@ from tiago_msgs.msg import Command
 from tiago_behaviours_msgs.msg import WanderAction, WanderGoal
 from tiago_behaviours_msgs.msg import MoveToAction, MoveToGoal
 from tiago_behaviours_msgs.msg import BringGoodsAction, BringGoodsGoal
-
+from tiago_behaviours_msgs.msg import StopAction, StopGoal
 
 def deg2rad(angle_deg):
     return float(angle_deg)/180.0*math.pi
@@ -142,6 +142,13 @@ def taskBring(object_name):
 def taskStop():
     print 'Poproszono mnie o zatrzymanie sie.'
 
+    client = actionlib.SimpleActionClient('stop', StopAction)
+    client.wait_for_server()
+    goal = StopGoal()
+    client.send_goal(goal)
+    client.wait_for_result()
+    return client.get_result()
+
 def callback(data):
     #print 'query_text', data.query_text
     #print 'intent_name', data.intent_name
@@ -164,6 +171,11 @@ def callback(data):
 
     elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/d9e96166-030b-442f-a513-d3fa2e044030':
         taskWander()
+
+    elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/6a3d7152-53c5-4757-9eec-8d2e0cf16e69':
+        # Do nothing: greeting
+        pass
+
     else:
         raise Exception('Unknown intent: "' + data.intent_name + '", query_text: "' + data.query_text + '"')
 
