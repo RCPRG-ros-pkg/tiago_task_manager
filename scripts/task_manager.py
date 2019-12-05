@@ -53,6 +53,10 @@ from tiago_behaviours_msgs.msg import WanderAction, WanderGoal
 from tiago_behaviours_msgs.msg import MoveToAction, MoveToGoal
 from tiago_behaviours_msgs.msg import BringGoodsAction, BringGoodsGoal
 from tiago_behaviours_msgs.msg import StopAction, StopGoal
+from tiago_behaviours_msgs.msg import QuestionLoadAction, QuestionLoadGoal
+from tiago_behaviours_msgs.msg import QuestionCurrentTaskAction, QuestionCurrentTaskGoal
+
+import pl_nouns.odmiana as ro
 
 def deg2rad(angle_deg):
     return float(angle_deg)/180.0*math.pi
@@ -68,125 +72,192 @@ def makePose(x, y, theta):
     result.orientation.w = q[3]
     return result
 
-def taskMoveTo(place_name):
-    print 'Poproszono mnie o przejscie do: ' + place_name
-    # TODO: transform place_name to pose
-    if place_name == 'kuchnia':
-        pose = makePose(3, 0.2, -math.pi/2)
-    elif place_name in ['warsztat', 'warsztatu']:
-        pose = makePose(1.55, 8.65, math.pi/2)
-    elif place_name in ['pokoj', 'pok\\303\\263j']:
-        pose = makePose(-0.15, -0.3, math.pi/2)
-    elif place_name == 'sypialnia':
-        pose = makePose(3, 5, math.pi/2)
-    else:
-        print 'Nie wiem gdzie jest: ' + place_name
-        return False
+class TaskManager:
+    def __init__(self):
+        self.o = ro.OdmianaRzeczownikow()
+        rospy.Subscriber("tiago_cmd", Command, self.callback)
 
-    # Creates the SimpleActionClient, passing the type of the action to the constructor.
-    client = actionlib.SimpleActionClient('move_to', MoveToAction)
+    def przypadki(self, word):
+        blocks = self.o.getBlocks(word)
+        if len(blocks) == 0:
+            print 'Nie moge znalezc nazwy miejsca w slowniku'
+            word_m = word
+        else:
+            m_lp = self.o.getMianownikLp(blocks)
+            if len(m_lp) == 0:
+                m_lm = self.o.getMianownikLp(blocks)
+                word_m = m_lm[0]
+            else:
+                word_m = m_lp[0]
 
-    # Waits until the action server has started up and started
-    # listening for goals.
-    client.wait_for_server()
+        word_d = self.o.getDopelniaczLp(blocks, mianownik=word_m)
+        if len(word_d) == 0:
+            word_d = self.o.getDopelniaczLm(blocks, mianownik=word_m)
 
-    # Creates a goal to send to the action server.
-    goal = MoveToGoal()
+        word_b = self.o.getBiernikLp(blocks, mianownik=word_m)
+        if len(word_b) == 0:
+            word_b = self.o.getBiernikLm(blocks, mianownik=word_m)
 
-    goal.pose = pose
+        return word_m, word_d[0], word_b[0]
 
-    #goal.header.stamp = rospy.get_rostime()
-    #goal.header.frame_id = 'map'
+    def taskMoveTo(self, place_name):
+        pl_name = ro.convertToUnicode(place_name.strip()).lower()
 
-    # Sends the goal to the action server.
-    client.send_goal(goal)
+        if pl_name == '':
+            print 'Mam gdzies isc, ale nie podano miejsca'
+            return False
 
-    # Waits for the server to finish performing the action.
-    client.wait_for_result()
+        place_name_m, place_name_d, place_name_b = self.przypadki(pl_name)
 
-    # Prints out the result of executing the action
-    return client.get_result()
+        print 'Poproszono mnie o przejscie do ' + place_name_d + ' (' + place_name_m + ')'
 
-def taskWander():
-    print 'Poproszono mnie, abym zaczal patrolowac'
-    # Creates the SimpleActionClient, passing the type of the action to the constructor.
-    client = actionlib.SimpleActionClient('wander', WanderAction)
+        # TODO: transform place_name to pose
+        if place_name_m == 'kuchnia':
+            pose = makePose(3, 0.2, -math.pi/2)
+        elif place_name_m in ['warsztat']:
+            pose = makePose(1.55, 8.65, math.pi/2)
+        elif place_name_m == 'pok' + ro._o + 'j':
+            pose = makePose(-0.15, -0.3, math.pi/2)
+        elif place_name_m == 'sypialnia':
+            pose = makePose(3, 5, math.pi/2)
+        else:
+            print 'Nie wiem gdzie jest: ' + place_name_m
+            return False
 
-    # Waits until the action server has started up and started
-    # listening for goals.
-    client.wait_for_server()
+        # Creates the SimpleActionClient, passing the type of the action to the constructor.
+        client = actionlib.SimpleActionClient('move_to', MoveToAction)
 
-    # Creates a goal to send to the action server.
-    goal = WanderGoal()
+        # Waits until the action server has started up and started
+        # listening for goals.
+        client.wait_for_server()
 
-    # Sends the goal to the action server.
-    client.send_goal(goal)
+        # Creates a goal to send to the action server.
+        goal = MoveToGoal()
 
-    # Waits for the server to finish performing the action.
-    client.wait_for_result()
+        goal.pose = pose
 
-    # Prints out the result of executing the action
-    return client.get_result()
+        #goal.header.stamp = rospy.get_rostime()
+        #goal.header.frame_id = 'map'
 
-def taskBring(object_name):
-    print 'Poproszono mnie o przyniesienie: ' + object_name
+        # Sends the goal to the action server.
+        client.send_goal(goal)
 
-    client = actionlib.SimpleActionClient('bring_goods', BringGoodsAction)
-    client.wait_for_server()
-    goal = BringGoodsGoal()
-    goal.goods_name = object_name
-    client.send_goal(goal)
-    client.wait_for_result()
-    return client.get_result()
+        # Waits for the server to finish performing the action.
+        client.wait_for_result()
 
-def taskStop():
-    print 'Poproszono mnie o zatrzymanie sie.'
+        # Prints out the result of executing the action
+        return client.get_result()
 
-    client = actionlib.SimpleActionClient('stop', StopAction)
-    client.wait_for_server()
-    goal = StopGoal()
-    client.send_goal(goal)
-    client.wait_for_result()
-    return client.get_result()
+    def taskWander(self):
+        print 'Poproszono mnie, abym zaczal patrolowac'
+        # Creates the SimpleActionClient, passing the type of the action to the constructor.
+        client = actionlib.SimpleActionClient('wander', WanderAction)
 
-def callback(data):
-    #print 'query_text', data.query_text
-    #print 'intent_name', data.intent_name
+        # Waits until the action server has started up and started
+        # listening for goals.
+        client.wait_for_server()
 
-    param_dict = {}
-    for param_name, param_value in zip(data.param_names, data.param_values):
-        param_dict[param_name] = param_value
+        # Creates a goal to send to the action server.
+        goal = WanderGoal()
 
-    if data.intent_name == 'projects/incare-dialog-agent/agent/intents/176ab2ca-6250-4227-985b-cc82d5497d9f':
-        taskBring(param_dict['przedmiot'])
+        # Sends the goal to the action server.
+        client.send_goal(goal)
 
-    elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/0165eceb-9621-4a7d-aecc-7a879951da18':
-        taskMoveTo( param_dict['miejsce'] )
+        # Waits for the server to finish performing the action.
+        client.wait_for_result()
 
-    elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/7acd4325-4cdd-4e15-99be-ad545f4dddd5':
-        taskStop()
+        # Prints out the result of executing the action
+        return client.get_result()
 
-    elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/2f028022-05b6-467d-bcbe-e861ab449c17':
-        print 'Niezrozumiale polecenie: "' + data.query_text + '"'
+    def taskBring(self, object_name):
+        ob_name = ro.convertToUnicode(object_name.strip()).lower()
 
-    elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/d9e96166-030b-442f-a513-d3fa2e044030':
-        taskWander()
+        ob_name_m, ob_name_d, ob_name_b = self.przypadki(ob_name)
 
-    elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/6a3d7152-53c5-4757-9eec-8d2e0cf16e69':
-        # Do nothing: greeting
-        pass
+        print 'Poproszono mnie o przyniesienie ' + ob_name_d + ' (' + ob_name_m + ')'
 
-    else:
-        raise Exception('Unknown intent: "' + data.intent_name + '", query_text: "' + data.query_text + '"')
+        client = actionlib.SimpleActionClient('bring_goods', BringGoodsAction)
+        client.wait_for_server()
+        goal = BringGoodsGoal()
+        goal.goods_name = object_name
+        client.send_goal(goal)
+        client.wait_for_result()
+        return client.get_result()
 
-    #data.parameters
-    #data.confidence
-    #data.response_text
+    def taskStop(self):
+        print 'Poproszono mnie o zatrzymanie sie.'
+
+        client = actionlib.SimpleActionClient('stop', StopAction)
+        client.wait_for_server()
+        goal = StopGoal()
+        client.send_goal(goal)
+        client.wait_for_result()
+        return client.get_result()
+
+    def questionLoad(self):
+        print 'Zapytano mnie: co wioze?'
+
+        client = actionlib.SimpleActionClient('q_load', QuestionLoadAction)
+        client.wait_for_server()
+        goal = QuestionLoadGoal()
+        client.send_goal(goal)
+        client.wait_for_result()
+        return client.get_result()
+
+    def questionCurrentTask(self):
+        print 'Zapytano mnie: co robie?'
+
+        client = actionlib.SimpleActionClient('q_current_task', QuestionCurrentTaskAction)
+        client.wait_for_server()
+        goal = QuestionCurrentTaskGoal()
+        client.send_goal(goal)
+        client.wait_for_result()
+        return client.get_result()
+
+    def callback(self, data):
+        #print 'query_text', data.query_text
+        #print 'intent_name', data.intent_name
+
+        param_dict = {}
+        for param_name, param_value in zip(data.param_names, data.param_values):
+            param_dict[param_name] = param_value
+
+        if data.intent_name == 'projects/incare-dialog-agent/agent/intents/176ab2ca-6250-4227-985b-cc82d5497d9f':
+            self.taskBring(param_dict['przedmiot'])
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/0165eceb-9621-4a7d-aecc-7a879951da18':
+            self.taskMoveTo( param_dict['miejsce'] )
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/7acd4325-4cdd-4e15-99be-ad545f4dddd5':
+            self.taskStop()
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/2f028022-05b6-467d-bcbe-e861ab449c17':
+            print 'Niezrozumiale polecenie: "' + data.query_text + '"'
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/d9e96166-030b-442f-a513-d3fa2e044030':
+            self.taskWander()
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/6a3d7152-53c5-4757-9eec-8d2e0cf16e69':
+            # Do nothing: greeting
+            pass
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/b8743ab9-08a1-49e8-a534-abb65155c507':
+            self.questionLoad()
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/8f45359d-ee47-4e10-a1b2-de3f3223e5b4':
+            self.questionCurrentTask()
+
+        else:
+            raise Exception('Unknown intent: "' + data.intent_name + '", query_text: "' + data.query_text + '"')
+
+        #data.parameters
+        #data.confidence
+        #data.response_text
     
 if __name__ == "__main__":
 
     rospy.init_node('tiago_task_manager', anonymous=False)
 
-    rospy.Subscriber("tiago_cmd", Command, callback)
+    tm = TaskManager()
 
     rospy.spin()
