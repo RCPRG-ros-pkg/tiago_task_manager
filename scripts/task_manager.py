@@ -96,10 +96,15 @@ class TaskManager:
         word_d = self.o.getDopelniaczLp(blocks, mianownik=word_m)
         if len(word_d) == 0:
             word_d = self.o.getDopelniaczLm(blocks, mianownik=word_m)
+        if len(word_d) == 0:
+            word_d = [word_m]
 
         word_b = self.o.getBiernikLp(blocks, mianownik=word_m)
         if len(word_b) == 0:
             word_b = self.o.getBiernikLm(blocks, mianownik=word_m)
+
+        if len(word_b) == 0:
+            word_b = [word_m]
 
         return word_m, word_d[0], word_b[0]
 
@@ -173,6 +178,7 @@ class TaskManager:
         return client.get_result()
 
     def taskBring(self, object_name):
+        print object_name
         ob_name = ro.convertToUnicode(object_name.strip()).lower()
 
         ob_name_m, ob_name_d, ob_name_b = self.przypadki(ob_name)
