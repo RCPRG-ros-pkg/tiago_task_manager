@@ -55,6 +55,9 @@ from tiago_behaviours_msgs.msg import BringGoodsAction, BringGoodsGoal
 from tiago_behaviours_msgs.msg import StopAction, StopGoal
 from tiago_behaviours_msgs.msg import QuestionLoadAction, QuestionLoadGoal
 from tiago_behaviours_msgs.msg import QuestionCurrentTaskAction, QuestionCurrentTaskGoal
+from tiago_behaviours_msgs.msg import AckAction, AckGoal
+from tiago_behaviours_msgs.msg import AckIgaveAction, AckIgaveGoal
+from tiago_behaviours_msgs.msg import AckItookAction, AckItookGoal
 
 import pl_nouns.odmiana as ro
 
@@ -206,10 +209,36 @@ class TaskManager:
 
     def questionCurrentTask(self):
         print 'Zapytano mnie: co robie?'
-
         client = actionlib.SimpleActionClient('q_current_task', QuestionCurrentTaskAction)
         client.wait_for_server()
         goal = QuestionCurrentTaskGoal()
+        client.send_goal(goal)
+        client.wait_for_result()
+        return client.get_result()
+
+    def respAck(self):
+        print 'Uslyszalem ogolne potwierdzenie'
+        client = actionlib.SimpleActionClient('ack', AckAction)
+        client.wait_for_server()
+        goal = AckGoal()
+        client.send_goal(goal)
+        client.wait_for_result()
+        return client.get_result()
+
+    def respAckIgave(self):
+        print 'Uslyszalem potwierdzenie podania'
+        client = actionlib.SimpleActionClient('ack_i_gave', AckIgaveAction)
+        client.wait_for_server()
+        goal = AckIgaveGoal()
+        client.send_goal(goal)
+        client.wait_for_result()
+        return client.get_result()
+
+    def respAckItook(self):
+        print 'Uslyszalem potwierdzenie odebrania'
+        client = actionlib.SimpleActionClient('ack_i_took', AckItookAction)
+        client.wait_for_server()
+        goal = AckItookGoal()
         client.send_goal(goal)
         client.wait_for_result()
         return client.get_result()
@@ -246,6 +275,18 @@ class TaskManager:
 
         elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/8f45359d-ee47-4e10-a1b2-de3f3223e5b4':
             self.questionCurrentTask()
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/ef92199b-d298-470c-8df3-1e1047dd70d1':
+            # Potwierdzenie
+            self.respAck()
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/d017cbd0-93f8-45b2-996e-043cdccab629':
+            # Potw_podalem
+            self.respAckIgave()
+
+        elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/181621b6-e91e-4244-a925-c5dc32ee1f1b':
+            # Potw_odebralem
+            self.respAckItook()
 
         else:
             raise Exception('Unknown intent: "' + data.intent_name + '", query_text: "' + data.query_text + '"')

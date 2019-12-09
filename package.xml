@@ -14,4 +14,6 @@
 
   <build_depend>tiago_msgs</build_depend>
   <exec_depend>tiago_msgs</exec_depend>
+  <build_depend>pl_nouns</build_depend>
+  <exec_depend>pl_nouns</exec_depend>
 </package>
