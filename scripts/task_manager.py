@@ -119,10 +119,11 @@ class TaskManager:
 
         print 'Poproszono mnie o przejscie do ' + place_name_d + ' (' + place_name_m + ')'
 
+        '''
         # TODO: transform place_name to pose
         if place_name_m == 'kuchnia':
             pose = makePose(3, 0.2, -math.pi/2)
-        elif place_name_m in ['warsztat']:
+        elif place_name_m in 'warsztat':
             pose = makePose(1.55, 8.65, math.pi/2)
         elif place_name_m == 'pok' + ro._o + 'j':
             pose = makePose(-0.15, -0.3, math.pi/2)
@@ -131,6 +132,7 @@ class TaskManager:
         else:
             print 'Nie wiem gdzie jest: ' + place_name_m
             return False
+        '''
 
         # Creates the SimpleActionClient, passing the type of the action to the constructor.
         client = actionlib.SimpleActionClient('move_to', MoveToAction)
@@ -142,10 +144,10 @@ class TaskManager:
         # Creates a goal to send to the action server.
         goal = MoveToGoal()
 
-        goal.pose = pose
-
-        #goal.header.stamp = rospy.get_rostime()
-        #goal.header.frame_id = 'map'
+        #goal.pose = pose
+        goal.pose_valid = False
+        goal.place_name = place_name_m
+        goal.place_name_valid = True
 
         # Sends the goal to the action server.
         client.send_goal(goal)
