@@ -47,8 +47,6 @@ from geometry_msgs.msg import Pose
 
 from tiago_msgs.msg import Command
 
-#from rosplan_tiago_scenarios_msgs.msg import GoAction, GoActionGoal, GoActionFeedback, GoActionResult, GoGoal
-
 from tiago_behaviours_msgs.msg import WanderAction, WanderGoal
 from tiago_behaviours_msgs.msg import MoveToAction, MoveToGoal
 from tiago_behaviours_msgs.msg import BringGoodsAction, BringGoodsGoal
