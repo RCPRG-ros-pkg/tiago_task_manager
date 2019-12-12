@@ -109,7 +109,7 @@ class TaskManager:
         return word_m, word_d[0], word_b[0]
 
     def taskMoveTo(self, place_name):
-        pl_name = ro.convertToUnicode(place_name.strip()).lower()
+        pl_name = place_name.strip().lower()
 
         if pl_name == '':
             print 'Mam gdzies isc, ale nie podano miejsca'
@@ -181,7 +181,7 @@ class TaskManager:
 
     def taskBring(self, object_name):
         print object_name
-        ob_name = ro.convertToUnicode(object_name.strip()).lower()
+        ob_name = object_name.strip().lower() #ro.convertToUnicode(object_name.strip()).lower()
 
         ob_name_m, ob_name_d, ob_name_b = self.przypadki(ob_name)
 
@@ -258,6 +258,7 @@ class TaskManager:
         param_dict = {}
         for param_name, param_value in zip(data.param_names, data.param_values):
             param_dict[param_name] = param_value
+            print 'param_name, param_value', param_name, param_value
 
         if data.intent_name == 'projects/incare-dialog-agent/agent/intents/176ab2ca-6250-4227-985b-cc82d5497d9f':
             self.taskBring(param_dict['przedmiot'])
