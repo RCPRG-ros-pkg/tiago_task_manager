@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# encoding: utf8
 
 # Copyright (c) 2019, Robot Control and Pattern Recognition Group,
 # Institute of Control and Computation Engineering
@@ -81,7 +82,7 @@ class TaskManager:
     def przypadki(self, word):
         blocks = self.o.getBlocks(word)
         if len(blocks) == 0:
-            print 'Nie moge znalezc nazwy miejsca w slowniku'
+            print u'Nie moge znaleźć nazwy miejsca w słowniku'
             word_m = word
         else:
             m_lp = self.o.getMianownikLp(blocks)
@@ -110,27 +111,12 @@ class TaskManager:
         pl_name = place_name.strip().lower()
 
         if pl_name == '':
-            print 'Mam gdzies isc, ale nie podano miejsca'
+            print u'Mam gdzieś iść, ale nie podano miejsca'
             return False
 
         place_name_m, place_name_d, place_name_b = self.przypadki(pl_name)
 
-        print 'Poproszono mnie o przejscie do ' + place_name_d + ' (' + place_name_m + ')'
-
-        '''
-        # TODO: transform place_name to pose
-        if place_name_m == 'kuchnia':
-            pose = makePose(3, 0.2, -math.pi/2)
-        elif place_name_m in 'warsztat':
-            pose = makePose(1.55, 8.65, math.pi/2)
-        elif place_name_m == 'pok' + ro._o + 'j':
-            pose = makePose(-0.15, -0.3, math.pi/2)
-        elif place_name_m == 'sypialnia':
-            pose = makePose(3, 5, math.pi/2)
-        else:
-            print 'Nie wiem gdzie jest: ' + place_name_m
-            return False
-        '''
+        print u'Poproszono mnie o przejście do ' + place_name_d.decode('utf-8') + u' (' + place_name_m.decode('utf-8') + u')'
 
         # Creates the SimpleActionClient, passing the type of the action to the constructor.
         client = actionlib.SimpleActionClient('move_to', MoveToAction)
@@ -142,7 +128,6 @@ class TaskManager:
         # Creates a goal to send to the action server.
         goal = MoveToGoal()
 
-        #goal.pose = pose
         goal.pose_valid = False
         goal.place_name = place_name_m
         goal.place_name_valid = True
@@ -157,7 +142,7 @@ class TaskManager:
         return client.get_result()
 
     def taskWander(self):
-        print 'Poproszono mnie, abym zaczal patrolowac'
+        print u'Poproszono mnie, abym zaczął patrolowac'
         # Creates the SimpleActionClient, passing the type of the action to the constructor.
         client = actionlib.SimpleActionClient('wander', WanderAction)
 
@@ -183,7 +168,7 @@ class TaskManager:
 
         ob_name_m, ob_name_d, ob_name_b = self.przypadki(ob_name)
 
-        print 'Poproszono mnie o przyniesienie ' + ob_name_d + ' (' + ob_name_m + ')'
+        print u'Poproszono mnie o przyniesienie ' + ob_name_d.decode('utf-8') + u' (' + ob_name_m.decode('utf-8') + u')'
 
         client = actionlib.SimpleActionClient('bring_goods', BringGoodsAction)
         client.wait_for_server()
@@ -194,7 +179,7 @@ class TaskManager:
         return client.get_result()
 
     def taskStop(self):
-        print 'Poproszono mnie o zatrzymanie sie.'
+        print u'Poproszono mnie o zatrzymanie się.'
 
         client = actionlib.SimpleActionClient('stop', StopAction)
         client.wait_for_server()
@@ -204,7 +189,7 @@ class TaskManager:
         return client.get_result()
 
     def questionLoad(self):
-        print 'Zapytano mnie: co wioze?'
+        print u'Zapytano mnie: co wiozę?'
 
         client = actionlib.SimpleActionClient('q_load', QuestionLoadAction)
         client.wait_for_server()
@@ -214,7 +199,7 @@ class TaskManager:
         return client.get_result()
 
     def questionCurrentTask(self):
-        print 'Zapytano mnie: co robie?'
+        print u'Zapytano mnie: co robię?'
         client = actionlib.SimpleActionClient('q_current_task', QuestionCurrentTaskAction)
         client.wait_for_server()
         goal = QuestionCurrentTaskGoal()
@@ -223,7 +208,7 @@ class TaskManager:
         return client.get_result()
 
     def respAck(self):
-        print 'Uslyszalem ogolne potwierdzenie'
+        print u'Usłyszałem ogólne potwierdzenie'
         client = actionlib.SimpleActionClient('ack', AckAction)
         client.wait_for_server()
         goal = AckGoal()
@@ -232,7 +217,7 @@ class TaskManager:
         return client.get_result()
 
     def respAckIgave(self):
-        print 'Uslyszalem potwierdzenie podania'
+        print u'Usłyszałem potwierdzenie podania'
         client = actionlib.SimpleActionClient('ack_i_gave', AckIgaveAction)
         client.wait_for_server()
         goal = AckIgaveGoal()
@@ -241,7 +226,7 @@ class TaskManager:
         return client.get_result()
 
     def respAckItook(self):
-        print 'Uslyszalem potwierdzenie odebrania'
+        print u'Usłyszałem potwierdzenie odebrania'
         client = actionlib.SimpleActionClient('ack_i_took', AckItookAction)
         client.wait_for_server()
         goal = AckItookGoal()
@@ -268,7 +253,7 @@ class TaskManager:
             self.taskStop()
 
         elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/2f028022-05b6-467d-bcbe-e861ab449c17':
-            print 'Niezrozumiale polecenie: "' + data.query_text + '"'
+            print u'Niezrozumiałe polecenie: "' + data.query_text.decode('utf-8') + '"'
 
         elif data.intent_name == 'projects/incare-dialog-agent/agent/intents/d9e96166-030b-442f-a513-d3fa2e044030':
             self.taskWander()
@@ -298,10 +283,6 @@ class TaskManager:
         else:
             raise Exception('Unknown intent: "' + data.intent_name + '", query_text: "' + data.query_text + '"')
 
-        #data.parameters
-        #data.confidence
-        #data.response_text
-    
 if __name__ == "__main__":
 
     rospy.init_node('tiago_task_manager', anonymous=False)
