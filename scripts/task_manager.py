@@ -79,6 +79,25 @@ class TaskManager:
         self.o = ro.OdmianaRzeczownikow()
         rospy.Subscriber("tiago_cmd", Command, self.callback)
 
+        # Creates the SimpleActionClient, passing the type of the action to the constructor.
+        self.clients = {}
+        self.clients['move_to'] = actionlib.SimpleActionClient('move_to', MoveToAction)
+        self.clients['wander'] = actionlib.SimpleActionClient('wander', WanderAction)
+        self.clients['bring_goods'] = actionlib.SimpleActionClient('bring_goods', BringGoodsAction)
+        self.clients['stop'] = actionlib.SimpleActionClient('stop', StopAction)
+        self.clients['q_load'] = actionlib.SimpleActionClient('q_load', QuestionLoadAction)
+        self.clients['q_current_task'] = actionlib.SimpleActionClient('q_current_task', QuestionCurrentTaskAction)
+        self.clients['ack'] = actionlib.SimpleActionClient('ack', AckAction)
+        self.clients['ack_i_gave'] = actionlib.SimpleActionClient('ack_i_gave', AckIgaveAction)
+        self.clients['ack_i_took'] = actionlib.SimpleActionClient('ack_i_took', AckItookAction)
+
+        # Waits until the action server has started up and started
+        # listening for goals.
+        for client_name, client in self.clients.iteritems():
+            print 'Waiting for action server "' + client_name + '"'
+            client.wait_for_server()
+        print 'Done.'
+
     def przypadki(self, word):
         blocks = self.o.getBlocks(word)
         if len(blocks) == 0:
@@ -118,12 +137,7 @@ class TaskManager:
 
         print u'Poproszono mnie o przejście do ' + place_name_d.decode('utf-8') + u' (' + place_name_m.decode('utf-8') + u')'
 
-        # Creates the SimpleActionClient, passing the type of the action to the constructor.
-        client = actionlib.SimpleActionClient('move_to', MoveToAction)
-
-        # Waits until the action server has started up and started
-        # listening for goals.
-        client.wait_for_server()
+        client = self.clients['move_to']
 
         # Creates a goal to send to the action server.
         goal = MoveToGoal()
@@ -143,12 +157,7 @@ class TaskManager:
 
     def taskWander(self):
         print u'Poproszono mnie, abym zaczął patrolowac'
-        # Creates the SimpleActionClient, passing the type of the action to the constructor.
-        client = actionlib.SimpleActionClient('wander', WanderAction)
-
-        # Waits until the action server has started up and started
-        # listening for goals.
-        client.wait_for_server()
+        client = self.clients['wander']
 
         # Creates a goal to send to the action server.
         goal = WanderGoal()
@@ -164,14 +173,10 @@ class TaskManager:
 
     def taskBring(self, object_name):
         print object_name
-        ob_name = object_name.strip().lower() #ro.convertToUnicode(object_name.strip()).lower()
-
+        ob_name = object_name.strip().lower()
         ob_name_m, ob_name_d, ob_name_b = self.przypadki(ob_name)
-
         print u'Poproszono mnie o przyniesienie ' + ob_name_d.decode('utf-8') + u' (' + ob_name_m.decode('utf-8') + u')'
-
-        client = actionlib.SimpleActionClient('bring_goods', BringGoodsAction)
-        client.wait_for_server()
+        client = self.clients['bring_goods']
         goal = BringGoodsGoal()
         goal.goods_name = object_name
         client.send_goal(goal)
@@ -180,9 +185,7 @@ class TaskManager:
 
     def taskStop(self):
         print u'Poproszono mnie o zatrzymanie się.'
-
-        client = actionlib.SimpleActionClient('stop', StopAction)
-        client.wait_for_server()
+        client = self.clients['stop']
         goal = StopGoal()
         client.send_goal(goal)
         client.wait_for_result()
@@ -191,8 +194,7 @@ class TaskManager:
     def questionLoad(self):
         print u'Zapytano mnie: co wiozę?'
 
-        client = actionlib.SimpleActionClient('q_load', QuestionLoadAction)
-        client.wait_for_server()
+        client = self.clients['q_load']
         goal = QuestionLoadGoal()
         client.send_goal(goal)
         client.wait_for_result()
@@ -200,8 +202,7 @@ class TaskManager:
 
     def questionCurrentTask(self):
         print u'Zapytano mnie: co robię?'
-        client = actionlib.SimpleActionClient('q_current_task', QuestionCurrentTaskAction)
-        client.wait_for_server()
+        client = self.clients['q_current_task']
         goal = QuestionCurrentTaskGoal()
         client.send_goal(goal)
         client.wait_for_result()
@@ -209,8 +210,7 @@ class TaskManager:
 
     def respAck(self):
         print u'Usłyszałem ogólne potwierdzenie'
-        client = actionlib.SimpleActionClient('ack', AckAction)
-        client.wait_for_server()
+        client = self.clients['ack']
         goal = AckGoal()
         client.send_goal(goal)
         client.wait_for_result()
@@ -218,8 +218,7 @@ class TaskManager:
 
     def respAckIgave(self):
         print u'Usłyszałem potwierdzenie podania'
-        client = actionlib.SimpleActionClient('ack_i_gave', AckIgaveAction)
-        client.wait_for_server()
+        client = self.clients['ack_i_gave']
         goal = AckIgaveGoal()
         client.send_goal(goal)
         client.wait_for_result()
@@ -227,8 +226,7 @@ class TaskManager:
 
     def respAckItook(self):
         print u'Usłyszałem potwierdzenie odebrania'
-        client = actionlib.SimpleActionClient('ack_i_took', AckItookAction)
-        client.wait_for_server()
+        client = self.clients['ack_i_took']
         goal = AckItookGoal()
         client.send_goal(goal)
         client.wait_for_result()
